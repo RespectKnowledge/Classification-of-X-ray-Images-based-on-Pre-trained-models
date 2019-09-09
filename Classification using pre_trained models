@@ -1,1 +1,217 @@
+# prepare dataset
+import cv2
+import matplotlib.pyplot as plt
+import os, shutil
+os.environ['QT_QPA_PLATFORM']='offscreen'
+from keras.preprocessing.image import ImageDataGenerator
+import glob
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits import mplot3d
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import Dropout
+from keras.layers import Flatten, Reshape, Activation,SimpleRNN,GRU, LSTM
+from keras.layers.convolutional import Conv2D,Conv3D, Conv2DTranspose, Conv3DTranspose
+from keras.layers.convolutional import MaxPooling2D,MaxPooling3D, UpSampling2D
+from keras.preprocessing.image import ImageDataGenerator
+from keras.layers.wrappers import TimeDistributed
+from sklearn.preprocessing import LabelBinarizer
+import matplotlib
+#matplotlib.use('Agg')
+import keras
+import numpy as np
+import matplotlib.pyplot as plt
 
+from sklearn import datasets
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
+from sklearn.metrics import accuracy_score
+
+from keras.models import Sequential
+from keras.layers import Dense, SimpleRNN, LSTM, GRU, Dropout, Activation, Bidirectional, Conv2D, MaxPooling2D
+from keras import optimizers
+from keras.utils.np_utils import to_categorical
+from keras.wrappers.scikit_learn import KerasClassifier
+#%Read the train & test Images and preprocessing
+train_images = []
+train_labels = [] 
+for directory_path in glob.glob("/raid/Home/Users/aqayyum/pymultimodel/Classificationmodels/Datasetnew/*"):
+    label = directory_path.split("\\")[-1]
+    for img_path in glob.glob(os.path.join(directory_path, "*.png")):
+        img = cv2.imread(img_path, cv2.IMREAD_COLOR)       
+        img = cv2.resize(img, (139, 139))
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        train_images.append(img)
+        train_labels.append(label)
+train_images = np.array(train_images)
+train_labels = np.array(train_labels)
+
+label_to_id = {v:i for i,v in enumerate(np.unique(train_labels))}
+id_to_label = {v: k for k, v in label_to_id.items()}
+train_label_ids = np.array([label_to_id[x] for x in train_labels])
+#image_data = image_data.reshape(-1,10,24,24,1)
+train_images.shape, train_label_ids.shape, train_labels.shape
+
+
+X_train1, y_train1, N_CATEGORY =train_images,train_label_ids,len(label_to_id)
+
+print(X_train1.shape, y_train1.shape, N_CATEGORY)
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(X_train1, y_train1, test_size=0.2)
+X_train = X_train.astype('float32') / 255.
+X_test = X_test.astype('float32') / 255.
+from keras import utils as np_utils
+#Y_train = np_utils.to_categorical(y_train, nb_classes)
+from keras.utils.np_utils import to_categorical
+y_train = keras.utils.to_categorical(Y_train, 3)
+y_test = keras.utils.to_categorical(Y_test, 3)
+
+
+# pre trained models
+import pandas as pd
+from glob import glob
+import keras
+import numpy as np
+from tqdm import tqdm
+from sklearn.model_selection import train_test_split
+from keras.applications.inception_v3 import InceptionV3, preprocess_input
+from keras.applications.xception import Xception
+from keras.models import Model
+from keras.layers import Dense, Dropout, Flatten
+from keras.preprocessing.image import ImageDataGenerator
+import cv2
+import os
+#%matplotlib inline
+import matplotlib.pyplot as plt
+from collections import Counter
+from keras.layers import *
+from keras.models import *
+from keras.applications import *
+from sklearn.manifold import TSNE
+from keras.optimizers import *
+from keras.regularizers import *
+from sklearn.preprocessing import LabelEncoder
+from keras.applications import ResNet50
+from keras.applications import ResNet50
+from keras.applications.resnet50 import ResNet50
+from keras_applications.resnet import ResNet50
+from keras_applications import resnext
+from keras_applications import resnet_v2
+from keras_applications import resnext
+
+# I developed the function using most of the pre-trained models
+def cnn_load_model(model='inceptionv3'):
+    im_size=224
+    if model == 'xception':
+        cnn_model = Xception(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    if model == 'ResNet50':
+        cnn_model = keras.applications.ResNet50(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    if model == 'ResNet101':
+        cnn_model=resnet.ResNet101(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet',
+                                    backend = keras.backend, layers = keras.layers, models = keras.models, utils = keras.utils)
+    if model == 'ResNet152':
+        cnn_model=resnet.ResNet152(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet',
+                                    backend = keras.backend, layers = keras.layers, models = keras.models, utils = keras.utils)
+    if model == 'ResNet50V2':
+        cnn_model=resnet_v2.ResNet50V2(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet',
+                                                  backend = keras.backend, layers = keras.layers, models = keras.models, utils = keras.utils)
+    if model == 'ResNeXt50':
+        cnn_model=resnext.ResNeXt50(
+        input_shape=(im_size, im_size, 3), include_top = False, weights = 'imagenet', 
+        backend = keras.backend, layers = keras.layers, models = keras.models, utils = keras.utils)
+    if model == 'ResNeXt101':
+        cnn_model=resnext.ResNeXt101(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet',
+                                                  backend = keras.backend, layers = keras.layers, models = keras.models, utils = keras.utils)
+    if model == 'NetVGG19':
+        cnn_model=keras.applications.vgg19.VGG19(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    if model == 'VGG16':
+        cnn_model=keras.applications.vgg16.VGG16(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+
+    if model == 'NetDenseNet121':
+        cnn_model=keras.applications.densenet.DenseNet121(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    
+    if model == 'NetDenseNet169':
+        cnn_model=keras.applications.densenet.DenseNet169(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+   
+    if model == 'NetDenseNet201':
+        cnn_model=keras.applications.densenet.DenseNet201(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    
+    if model == 'NetNASNetLarge':
+        cnn_model=keras.applications.nasnet.NASNetLarge(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    
+    if model == 'NetNASNetMobile':
+        cnn_model=keras.applications.nasnet.NASNetMobile(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    
+    if model == 'NetMobileNet':
+        cnn_model=keras.applications.mobilenet.MobileNet(alpha=1.0, depth_multiplier=1, dropout=1e-3, include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')  
+    
+    if model == 'InceptionResNetV2':
+        cnn_model=keras.applications.inception_resnet_v2.InceptionResNetV2(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    
+    if model == 'NetDenseNet201':
+        cnn_model=keras.applications.densenet.DenseNet201(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')          
+    
+    else:
+        cnn_model = InceptionV3(include_top=False, input_shape=(im_size, im_size, 3), weights='imagenet')
+    
+    for layer in cnn_model.layers:
+        layer.trainable = False
+    
+    inputs = Input((im_size, im_size, 3))
+    x = inputs
+    x = Lambda(preprocess_input, name='preprocessing')(x)
+    x = cnn_model(x)
+    x = GlobalAveragePooling2D()(x)
+    cnn_model = Model(inputs, x)
+    cnn_model.summary()
+    return cnn_model
+    
+    
+    # Extract Features at the bottom of the pre-trained models
+def bottleneck_features1(model='xception'):
+    xception_m = cnn_load_model(model)
+    features = xception_m.predict(x=X_train, batch_size=32, verbose=1)
+    np.save('data/saved_npy/'+model+'_featuretraining.npy',features)
+    return features
+features7 = np.asarray(bottleneck_features1(model='xception'))
+np.shape(features7)
+print(np.shape(features7))
+
+# Used softmax classifier for pre-trained features extracted from pre-trained models
+num_class = 3
+inputs = Input(features7.shape[1:])
+x = inputs
+x = Dense(256,activation = None)(x)
+x = BatchNormalization()(x)
+x = Activation('relu')(x)
+x = Dense(num_class, activation='softmax')(x)
+model = Model(inputs, x)
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+history = model.fit(features7, y_train, batch_size=64,validation_split = 0.20, epochs=100,verbose=1)
+#history = model.fit(X_train, Y_train, validation_split=0.20, epochs=20)
+print(history.history.keys())
+
+def bottleneck_features11(model='xception'):
+    xception_m = cnn_load_model(model)
+    featurestest = xception_m.predict(x=X_test, batch_size=32, verbose=1)
+    np.save('data/saved_npy/'+model+'_testfeatures.npy',featurestest)
+    return featurestest
+featurestest1 = np.asarray(bottleneck_features11(model='xception'))
+np.shape(featurestest1)
+## evaluate test accuracy
+score = model.evaluate(featurestest1, y_test, verbose=0)
+accuracy = 100*score[1]
+print('Test accuracy: %.4f%%' % accuracy)
+
+trainingfeatures=features7
+testing features=featurestest1
+traininglabel=Y_train
+testinglabels=Y_test
+
+#Feed the extracted features with the labels to RANDOM FOREST 
+rf = RandomForestClassifier(n_estimators = 20, random_state = 42,max_features=4)
+
+rf.fit(train_features, train_label_ids)
